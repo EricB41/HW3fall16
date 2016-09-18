@@ -19,14 +19,16 @@ class OracleOfBacon
   validates_presence_of :api_key
   validate :from_does_not_equal_to
 
-   def from_does_not_equal_to
-#    if @from == @to
-#      self.errors.add(:from, 'cannot be the same as To')
-#    end
+  def from_does_not_equal_to
+    if @from == @to
+      self.errors.add(:from, 'cannot be the same as To')
+    end
   end
 
   def initialize(api_key='')
-    # your code here
+    @api_key = api_key
+    @to = "Kevin Bacon"
+    @from = "Kevin Bacon"
   end
 
   def find_connections
@@ -49,6 +51,10 @@ class OracleOfBacon
   def make_uri_from_arguments
     # your code here: set the @uri attribute to properly-escaped URI
     # constructed from the @from, @to, @api_key arguments
+    #http://oracleofbacon.org/cgi-bin/xml?p=my_key&a=Carrie+Fisher (I)+(I)&b=
+    @uri = 'http://oracleofbacon.org/cgi-bin/xml?p=' + CGI.escape(@api_key) + '&a=' + CGI.escape(@to) + '&b=' + CGI.escape(@from)
+    print @uri
+    print "\n\n"
   end
       
   class Response
@@ -74,8 +80,20 @@ class OracleOfBacon
     end
 
     def parse_error_response
-     #Your code here.  Assign @type and @data
-     # based on type attribute and body of the error element
+      #Your code here.  Assign @type and @data
+      # based on type attribute and body of the error element
+      error_type = @doc.xpath('/error')
+      if error_type.to_s.include? "badinput"
+        @type = :badinput
+      elsif error_type.to_s.include? "unlinkable"
+        @type = :unlinkable
+      elsif error_type.to_s.include? "unauthorized"
+        @type = :unauthorized
+      end
+      @data = error_type.to_s[/>.+</]
+      @data.gsub!(/>/, "")
+      @data.gsub!(/</, "")
+      
     end
 
     def parse_spellcheck_response
@@ -85,7 +103,8 @@ class OracleOfBacon
     end
 
     def parse_graph_response
-      #Your code here
+      @type = :graph
+      @data = @doc.xpath('//link/*').map(&:text)
     end
 
     def parse_unknown_response

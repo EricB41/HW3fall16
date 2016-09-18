@@ -11,6 +11,8 @@ group :test do
   gem 'rspec'
   gem 'rspec-its'
   gem 'rspec-collection_matchers'
+  gem 'rspec-autotest'
+  gem 'autotest-standalone'
 end
 
 
