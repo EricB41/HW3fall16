@@ -36,16 +36,17 @@ class OracleOfBacon
     begin
       xml = URI.parse(uri).read
     rescue OpenURI::HTTPError 
-      xml = %q{<?xml version="1.0" standalone="no"?>
-<error type="unauthorized">unauthorized use of xml interface</error>}
+      xml = "<?xml version=\"1.0\" standalone=\"no\"?>\n<error type=\"unauthorized\">unauthorized use of xml interface</error>"
     rescue Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, EOFError,
       Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError,
       Net::ProtocolError => e
       # convert all of these into a generic OracleOfBacon::NetworkError,
       #  but keep the original error message
       # your code here
+      raise NetworkError.new(e)
     end
     # your code here: create the OracleOfBacon::Response object
+    return Response.new(xml)
   end
 
   def make_uri_from_arguments
@@ -53,8 +54,6 @@ class OracleOfBacon
     # constructed from the @from, @to, @api_key arguments
     #http://oracleofbacon.org/cgi-bin/xml?p=my_key&a=Carrie+Fisher (I)+(I)&b=
     @uri = 'http://oracleofbacon.org/cgi-bin/xml?p=' + CGI.escape(@api_key) + '&a=' + CGI.escape(@to) + '&b=' + CGI.escape(@from)
-    print @uri
-    print "\n\n"
   end
       
   class Response
